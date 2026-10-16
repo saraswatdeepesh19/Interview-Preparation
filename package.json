@@ -5,8 +5,8 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "dev": "node scripts/serve.js",
-    "serve": "node scripts/serve.js",
+    "dev": "node scripts/generate_site_pages.js && node scripts/serve.js",
+    "serve": "node scripts/generate_site_pages.js && node scripts/serve.js",
     "generate": "node scripts/generate_site_pages.js",
     "build": "node scripts/generate_site_pages.js",
     "test": "node scripts/check_all_sections_alignment.mjs"

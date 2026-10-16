@@ -112,7 +112,7 @@
         <div class="sidebar-title">
           <span>{{ sidebar_title }}</span>
           <div class="sidebar-header-right">
-            <span class="sidebar-sec-badge">20 topics</span>
+            <span class="sidebar-sec-badge">{{ page.sidebar_sections | size }} topics</span>
             <button type="button" class="sidebar-close-btn" id="sidebar-close-btn" aria-label="Close sidebar">✕</button>
           </div>
         </div>
@@ -176,7 +176,7 @@
         <header class="article-header">
           <div class="article-eyebrow">
             {% if page.kind == 'library' %}
-              <span>📚 {{ answers_label }} · 20 topics</span>
+              <span>📚 {{ answers_label }} · {{ page.sidebar_sections | size }} topics</span>
             {% elsif page.kind == 'section' %}
               <span>{{ page.icon }} {{ section_label }} {{ page.section_number }} · {{ page.question_count }} {{ questions_count_label }}</span>
             {% else %}

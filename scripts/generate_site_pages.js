@@ -49,6 +49,51 @@ const SECTION_ICONS = {
   38: '🤝',
 };
 
+// Landing-page card copy. Sections without an entry still get a card, using the
+// folder label and their first few question titles as the description.
+const SECTION_CARDS = {
+  1: { title: 'Databases SQL PostgreSQL', desc: 'Indexes, B-Trees, MVCC, VACUUM, JOINs, window functions, and query optimization.' },
+  2: { title: 'Design Patterns', desc: 'GoF patterns in Java: Singleton, Factory, Strategy, Observer, Decorator, and Proxies.' },
+  3: { title: 'Memory & Garbage Collection', desc: 'JVM Heap, Stack, Metaspace, G1, ZGC, memory leaks, OutOfMemoryError, and profiling.' },
+  4: { title: 'Collections Framework', desc: 'ArrayList, LinkedList, TreeSet, ConcurrentHashMap, fail-fast vs fail-safe iterators.' },
+  5: { title: 'Spring & Spring Boot', desc: 'IoC, DI, Bean Lifecycle, BeanPostProcessor, auto-configuration, actuators, and proxies.' },
+  6: { title: 'REST & HTTP', desc: 'HTTP methods, idempotency, status codes, REST maturity model, and API design principles.' },
+  7: { title: 'Exceptions Handling', desc: 'Checked vs Unchecked, try-with-resources, AutoCloseable, suppressed exceptions, best practices.' },
+  8: { title: 'Stream API', desc: 'Intermediate & terminal operations, collectors, parallel streams, reduce, Spliterator.' },
+  9: { title: 'Multithreading & Concurrency', desc: 'JMM, synchronized, volatile, CAS, Atomic classes, ThreadPools, Virtual Threads, and Deadlocks.' },
+  10: { title: 'HashMap, equals & hashCode', desc: 'Internal bucket hashing, treeification (Red-Black trees), collision handling, and contracts.' },
+  11: { title: 'Transactions', desc: 'ACID properties, isolation levels, propagation types in Spring `@Transactional`, and 2PC.' },
+  12: { title: 'String Internals', desc: 'String Constant Pool, Compact Strings, StringBuilder vs StringBuffer, immutability benefits.' },
+  13: { title: 'Immutability', desc: 'Defensive copying, unmodifiable wrappers, Java Records, thread safety through immutability.' },
+  14: { title: 'Docker & Kubernetes', desc: 'Containerization, multi-stage builds, Pods, Services, Deployments, ConfigMaps, and Probes.' },
+  15: { title: 'Apache Kafka', desc: 'Topics, partitions, consumer groups, delivery semantics, offsets, idempotence, and rebalances.' },
+  16: { title: 'Hibernate & JPA', desc: 'Entity lifecycle, N+1 query problem, fetch strategies, L1/L2 caches, and optimistic locking.' },
+  17: { title: 'Microservices Architecture', desc: 'Service Discovery, API Gateway, Circuit Breaker, Saga Pattern, Distributed Tracing, CQRS.' },
+  18: { title: 'OOP & SOLID Principles', desc: 'Encapsulation, Polymorphism, Inheritance vs Composition, Single Responsibility, LSP, DIP.' },
+  19: { title: 'CompletableFuture & Async', desc: 'Asynchronous composition, exception handling, allOf / anyOf, thread pool management.' },
+  20: { title: 'Records & Generics', desc: 'Java Records, Type Erasure, Wildcards `? extends / super`, PECS rule, Bridge methods.' },
+  21: { title: 'Java Language Evolution', desc: 'Lambdas, method references, Optional, var, text blocks, switch expressions, modules, and sealed types.' },
+  22: { title: 'Testing', desc: 'Test pyramid, JUnit 5, AssertJ, Mockito, test doubles, TDD, and Spring Boot test slices.' },
+  23: { title: 'Spring Security & Auth', desc: 'Filter chain, SecurityContext, password encoding, JWT, OAuth 2.0, OIDC, method security, and CSRF.' },
+  24: { title: 'Reactive Programming', desc: 'Reactive Streams, Mono vs Flux, operators, backpressure, schedulers, and WebFlux vs MVC.' },
+  25: { title: 'Spring Cloud & Resilience', desc: 'Service discovery, Gateway, Config, Feign, circuit breakers, retries, bulkheads, and rate limiting.' },
+  26: { title: 'Caching & Redis', desc: 'Caching strategies, eviction policies, Spring Cache, Caffeine, Redis data structures, persistence, and Cluster.' },
+  27: { title: 'NoSQL & Data Stores', desc: 'CAP and PACELC, consistency models, MongoDB, Elasticsearch, and Cassandra internals.' },
+  28: { title: 'Messaging Beyond Kafka', desc: 'JMS, RabbitMQ and AMQP, acknowledgements, DLQs, delivery guarantees, idempotent consumers, ordering.' },
+  29: { title: 'Data Structures & Algorithms', desc: 'Big-O, two pointers, sliding window, hashing, linked lists, stacks, backtracking, binary search, sorting.' },
+  30: { title: 'System Design', desc: 'Requirements, estimation, scaling, load balancing, sharding, consistent hashing, caching, CQRS, event sourcing.' },
+  31: { title: 'Performance & Observability', desc: 'Latency percentiles, JFR, async-profiler, JMH, JIT, thread and heap dumps, GC tuning, connection pools.' },
+  32: { title: 'Build, CI/CD & DevOps', desc: 'Maven vs Gradle, lifecycle, dependency management, multi-module builds, Git workflows, and code review.' },
+  33: { title: 'Cloud & AWS', desc: 'IaaS/PaaS/SaaS, shared responsibility, IAM, EC2 and Auto Scaling, ALB, VPC, S3, RDS and Aurora.' },
+  34: { title: 'API Design & Integration', desc: 'API-first, OpenAPI and springdoc, resource modeling, versioning, pagination, filtering and sorting.' },
+  35: { title: 'Frontend for Full Stack', desc: 'Semantic HTML, CSS box model, Flexbox and Grid, closures, prototypes, ES6+, event loop, async/await, DOM.' },
+  36: { title: 'DB Migrations & Advanced SQL', desc: 'Flyway, Liquibase, zero-downtime migrations, large-table changes, rollbacks, window functions, and CTEs.' },
+  37: { title: 'Architecture & Tech Leadership', desc: 'Clean code, refactoring, DDD, hexagonal and clean architecture, modular monoliths, strangler fig, ADRs and C4.' },
+  38: { title: 'Behavioral & Agile', desc: 'Self-introduction, STAR method, achievements, conflict handling, code review feedback, Scrum and Kanban.' },
+};
+
+const LANDING_PAGE = path.join(DOCS_DIR, 'index.md');
+
 const LANGUAGES = {
   eng: {
     lang_code: 'en',
@@ -234,10 +279,16 @@ function parseLanguage(langKey) {
 
     const files = fs.readdirSync(entryPath).sort();
     const navFile = files.find(f => f.startsWith('00.'));
-    if (!navFile) throw new Error(`Navigator file not found in ${entryPath}`);
-
-    const navRaw = fs.readFileSync(path.join(entryPath, navFile), 'utf-8');
-    const { title: navTitle, body: navBody } = splitHeading(navRaw, label);
+    // A missing navigator must not take the whole site down: the section page
+    // still lists every question, it just has no curated study navigator.
+    let navTitle = label;
+    let navBody = '';
+    if (navFile) {
+      const navRaw = fs.readFileSync(path.join(entryPath, navFile), 'utf-8');
+      ({ title: navTitle, body: navBody } = splitHeading(navRaw, label));
+    } else {
+      console.warn(`⚠️  No "00." navigator in ${entryName}; section page will list questions only.`);
+    }
 
     const questions = [];
     for (const f of files) {
@@ -277,7 +328,7 @@ function parseLanguage(langKey) {
       label,
       dir_name: entryName,
       source_dir: entryPath,
-      navigator_path: path.join(entryPath, navFile),
+      navigator_path: navFile ? path.join(entryPath, navFile) : null,
       navigator_body: navBody.trim(),
       navigator_title: navTitle,
       icon: SECTION_ICONS[number] || '📚',
@@ -414,7 +465,9 @@ function buildSectionContent(langKey, section) {
   for (const q of section.questions) {
     lines.push(`${q.position}. [${q.title}](./${q.slug}/)`);
   }
-  lines.push('', `## ${text.section_navigator_heading}`, '', rewrittenNav, '');
+  if (rewrittenNav) {
+    lines.push('', `## ${text.section_navigator_heading}`, '', rewrittenNav, '');
+  }
   return lines.join('\n');
 }
 
@@ -506,7 +559,9 @@ function generatePages(allSections) {
     // 2. Section pages & Question pages
     for (const sec of orderedSections) {
       const secSidebar = buildSidebarData(orderedSections, sec.number);
-      const secRelative = path.relative(REPO_ROOT, sec.navigator_path).replace(/\\/g, '/');
+      const secSourceUrl = sec.navigator_path
+        ? `${REPOSITORY_URL}/blob/master/${path.relative(REPO_ROOT, sec.navigator_path).replace(/\\/g, '/')}`
+        : `${REPOSITORY_URL}/tree/master/${path.relative(REPO_ROOT, sec.source_dir).replace(/\\/g, '/')}`;
 
       writePage(
         path.join(outputDir, sec.slug, 'index.md'),
@@ -525,7 +580,7 @@ function generatePages(allSections) {
           section_url: sec.url,
           section_number: sec.number,
           question_count: sec.questions.length,
-          source_url: `${REPOSITORY_URL}/blob/master/${secRelative}`,
+          source_url: secSourceUrl,
           alternates: buildAlternates(allSections, sec.number),
           sidebar_sections: secSidebar,
         },
@@ -567,6 +622,51 @@ function generatePages(allSections) {
 
   generateSearchIndexes(allSections);
   generateSitemap(allSections);
+  updateLandingPage(allSections);
+}
+
+function escapeHtml(text) {
+  return String(text).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+function renderTopicCard(section) {
+  const card = SECTION_CARDS[section.number] || {};
+  const title = card.title || section.label;
+  const desc = card.desc || section.questions.slice(0, 4).map(q => q.title).join(', ') + '.';
+  return [
+    `  <a class="topic-card" href="{{ '${section.url}' | relative_url }}">`,
+    '    <div class="topic-card-top">',
+    `      <span class="topic-icon">${section.icon}</span>`,
+    `      <span class="topic-count">${section.questions.length} Questions</span>`,
+    '    </div>',
+    '    <div>',
+    `      <h3 class="topic-title">${section.number}. ${escapeHtml(title)}</h3>`,
+    `      <p class="topic-desc">${escapeHtml(desc)}</p>`,
+    '    </div>',
+    '    <div class="topic-footer">Start learning →</div>',
+    '  </a>',
+  ].join('\n');
+}
+
+// Rewrites every `<!-- gen:KEY -->...<!-- /gen:KEY -->` block in the landing page
+// so section counts, question counts and topic cards always mirror eng/.
+function updateLandingPage(allSections) {
+  if (!fs.existsSync(LANDING_PAGE)) return;
+  const sections = Object.keys(allSections.eng).map(Number).sort((a, b) => a - b).map(n => allSections.eng[n]);
+  const totalQuestions = sections.reduce((acc, s) => acc + s.questions.length, 0);
+  const blocks = {
+    'topic-count': String(sections.length),
+    'question-count': String(totalQuestions),
+    'topic-cards': '\n' + sections.map(renderTopicCard).join('\n\n') + '\n',
+  };
+
+  let html = fs.readFileSync(LANDING_PAGE, 'utf-8');
+  for (const [key, value] of Object.entries(blocks)) {
+    const re = new RegExp(`(<!-- gen:${key} -->)[\\s\\S]*?(<!-- /gen:${key} -->)`, 'g');
+    html = html.replace(re, (_, open, close) => `${open}${value}${close}`);
+  }
+  fs.writeFileSync(LANDING_PAGE, html, 'utf-8');
+  console.log(`Updated landing page: ${sections.length} topics, ${totalQuestions} questions`);
 }
 
 function generateSitemap(allSections) {
