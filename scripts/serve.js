@@ -169,6 +169,10 @@ const server = http.createServer(async (req, res) => {
     path.join(DOCS_DIR, reqUrl, 'index.md'),
     path.join(DOCS_DIR, reqUrl, 'index.html'),
   ];
+  // Jekyll's pretty permalinks serve "topics/foo.md" at "/topics/foo/".
+  if (reqUrl.endsWith('/index.md')) {
+    candidates.push(path.join(DOCS_DIR, reqUrl.slice(0, -'/index.md'.length) + '.md'));
+  }
 
   for (const c of candidates) {
     if (fs.existsSync(c) && fs.statSync(c).isFile()) {

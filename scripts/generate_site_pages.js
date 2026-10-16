@@ -247,20 +247,32 @@ function siteUrl(langKey, ...parts) {
   return cleanParts.length ? '/' + cleanParts.join('/') + '/' : '/';
 }
 
-function rewriteNavigatorLinks(navigatorBody, section) {
-  let rewritten = navigatorBody;
-  for (const question of section.questions) {
-    const replacement = `./${question.slug}/`;
-    const candidates = [
-      question.file_name,
-      encodeURIComponent(question.file_name),
-      question.file_name.replace(/ /g, '%20'),
-    ];
-    for (const c of candidates) {
-      rewritten = rewritten.split(`](${c})`).join(`](${replacement})`);
+// Navigators are hand-written, so their link targets often differ from the real
+// file names in case or wording. Match on the exact name (case-insensitive) first,
+// then fall back to the question number prefix, which is unique within a section.
+// Links into a sibling section ("../3. Name/...") resolve against that section.
+function rewriteNavigatorLinks(navigatorBody, section, sectionsByNumber) {
+  const findQuestion = (sec, fileName) => {
+    const numberMatch = fileName.match(/^(\d+)\./);
+    return sec.questions.find(q => q.file_name.toLowerCase() === fileName.toLowerCase())
+      || (numberMatch && sec.questions.find(q => q.number === parseInt(numberMatch[1], 10)));
+  };
+  return navigatorBody.replace(/\]\(((?:[^()\s]|\([^()\s]*\))+\.md)\)/g, (match, target) => {
+    let decoded = target;
+    try { decoded = decodeURIComponent(target); } catch { /* keep raw target */ }
+
+    const sibling = decoded.match(/^\.\.\/(\d+)\.[^/]*\/(.+)$/);
+    if (sibling) {
+      const other = sectionsByNumber[parseInt(sibling[1], 10)];
+      if (!other) return match;
+      if (sibling[2].startsWith('00.')) return `](../${other.slug}/)`;
+      const question = findQuestion(other, sibling[2]);
+      return question ? `](../${other.slug}/${question.slug}/)` : match;
     }
-  }
-  return rewritten;
+
+    const question = findQuestion(section, decoded);
+    return question ? `](./${question.slug}/)` : match;
+  });
 }
 
 function parseLanguage(langKey) {
@@ -455,9 +467,9 @@ function buildLibraryContent(langKey, sections) {
   return lines.join('\n') + '\n';
 }
 
-function buildSectionContent(langKey, section) {
+function buildSectionContent(langKey, section, sectionsByNumber) {
   const text = LOCALIZED_TEXT[langKey];
-  const rewrittenNav = rewriteNavigatorLinks(section.navigator_body, section);
+  const rewrittenNav = rewriteNavigatorLinks(section.navigator_body, section, sectionsByNumber);
   const lines = [
     `## ${text.section_questions_heading}`,
     '',
@@ -584,7 +596,7 @@ function generatePages(allSections) {
           alternates: buildAlternates(allSections, sec.number),
           sidebar_sections: secSidebar,
         },
-        buildSectionContent(langKey, sec)
+        buildSectionContent(langKey, sec, sections)
       );
 
       for (const q of sec.questions) {
@@ -704,6 +716,14 @@ function generateSitemap(allSections) {
       ];
 
       urls.push({ loc: `${SITE_URL}${q.url}`, priority: '0.7', alternates: qAlternates });
+    }
+  }
+
+  const topicsDir = path.join(DOCS_DIR, 'topics');
+  if (fs.existsSync(topicsDir)) {
+    for (const f of fs.readdirSync(topicsDir).filter(n => n.endsWith('.md')).sort()) {
+      const url = `${SITE_URL}/topics/${f.replace(/\.md$/, '')}/`;
+      urls.push({ loc: url, priority: '0.6', alternates: [{ lang: 'en', url }, { lang: 'x-default', url }] });
     }
   }
 

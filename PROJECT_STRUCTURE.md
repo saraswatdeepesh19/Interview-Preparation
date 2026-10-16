@@ -50,7 +50,7 @@ JavaInterview_v2/
 │   ├── assets/
 │   │   ├── css/site.css         # Стили сайта
 │   │   └── social-preview/github-social-preview.png
-│   ├── topics/                  # SEO topic pages (20 штук)
+│   ├── topics/                  # SEO topic pages (по одной на секцию)
 │   │   ├── spring-boot-interview-questions.md
 │   │   ├── sql-postgresql-interview-questions.md
 │   │   └── ... (по одной на секцию)
@@ -59,17 +59,19 @@ JavaInterview_v2/
 │   └── ru/questions/            # ⚠️ .gitignore — генерируется скриптом
 │
 └── scripts/
-    └── generate_site_pages.py   # Генерирует answer pages из MD → docs/questions/
+    ├── generate_site_pages.js   # Генерирует answer pages, поиск, sitemap и карточки главной из eng/
+    ├── serve.js                 # Локальный dev-сервер (npm run dev)
+    └── check_all_sections_alignment.mjs  # npm test: проверка нумерации секций
 ```
 
 ---
 
-## 📁 20 тематических секций
+## 📁 Тематические секции (38)
 
 | # | Папка (ru/) | Папка (eng/) | Папка (ua/) | Вопросов |
 |---|-------------|-------------|-------------|----------|
 | 1 | `1. Базы данных SQL PostgreSQL` | `1. Databases SQL PostgreSQL` | `1. Бази даних SQL PostgreSQL` | 21 |
-| 2 | `2. Паттерны проектирования` | `2. Design Patterns` | `2. Патерни проєктування` | 16 |
+| 2 | `2. Паттерны проектирования` | `2. Design Patterns` | `2. Патерни проєктування` | 29 |
 | 3 | `3. Память и Garbage Collection` | `3. Memory and Garbage Collection` | `3. Пам'ять та Garbage Collection` | 28 |
 | 4 | `4. Коллекции` | `4. Collections` | `4. Колекції` | 30 |
 | 5 | `5. Spring Spring Boot` | `5. Spring Spring Boot` | `5. Spring Spring Boot` | 29 |
@@ -88,6 +90,24 @@ JavaInterview_v2/
 | 18 | `18. ООП и SOLID` | `18. OOP and SOLID` | `18. ООП та SOLID` | 22 |
 | 19 | `19. CompletableFuture и асинхронность` | `19. CompletableFuture and Asynchrony` | `19. CompletableFuture та асинхронність` | 28 |
 | 20 | `20. Records и Дженерики` | `20. Records and Generics` | `20. Records та Дженерики` | 27 |
+| 21 | — | `21. Java Language Evolution` | — | 10 |
+| 22 | — | `22. Testing` | — | 12 |
+| 23 | — | `23. Spring Security and Authentication` | — | 14 |
+| 24 | — | `24. Reactive Programming` | — | 10 |
+| 25 | — | `25. Spring Cloud and Resilience` | — | 13 |
+| 26 | — | `26. Caching and Redis` | — | 10 |
+| 27 | — | `27. NoSQL and Data Stores` | — | 16 |
+| 28 | — | `28. Messaging Beyond Kafka` | — | 9 |
+| 29 | — | `29. Data Structures and Algorithms` | — | 9 |
+| 30 | — | `30. System Design` | — | 12 |
+| 31 | — | `31. Performance and Observability` | — | 12 |
+| 32 | — | `32. Build CI CD and DevOps` | — | 9 |
+| 33 | — | `33. Cloud and AWS` | — | 9 |
+| 34 | — | `34. API Design and Integration` | — | 6 |
+| 35 | — | `35. Frontend for Full Stack Developers` | — | 10 |
+| 36 | — | `36. Database Migrations and Advanced SQL` | — | 8 |
+| 37 | — | `37. Architecture and Technical Leadership` | — | 10 |
+| 38 | — | `38. Behavioral and Agile` | — | 10 |
 
 **Правило:** Каждая секция содержит `N+1` файлов: 1 навигатор (`00.`) + N файлов с вопросами.
 
@@ -302,7 +322,7 @@ image: /assets/social-preview/github-social-preview.png
 ```mermaid
 graph LR
     A["git push master"] --> B["GitHub Actions"]
-    B --> C["Python: generate_site_pages.py"]
+    B --> C["Node: npm run build (generate_site_pages.js)"]
     C --> D["Генерирует docs/questions/ из ru/ eng/ ua/"]
     D --> E["Jekyll build"]
     E --> F["Deploy to GitHub Pages"]
@@ -341,7 +361,7 @@ graph LR
 | Файлов в ru/ | 537 |
 | Файлов в eng/ | 537 |
 | Файлов в ua/ | 537 |
-| Секций в каждом | 20 |
+| Секций в каждом | 38 |
 | Файлов в каждой секции | Одинаково для всех 3 языков |
 
 ### Проверка паритета (команда)
