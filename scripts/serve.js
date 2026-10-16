@@ -101,8 +101,10 @@ marked.setOptions({
 
 function renderMarkdown(md) {
   if (!md) return '';
+  // Generated pages wrap their body in {% raw %}; this server does no Liquid, so drop the tags.
+  let processed = md.replace(/\{%-?\s*(?:end)?raw\s*-?%\}\n?/g, '');
   // Resolve Liquid tags like {{ '/questions/...' | relative_url }}
-  let processed = md.replace(/\{\{\s*['"]([^'"]+)['"]\s*\|\s*relative_url\s*\}\}/g, '$1');
+  processed = processed.replace(/\{\{\s*['"]([^'"]+)['"]\s*\|\s*relative_url\s*\}\}/g, '$1');
   processed = processed.replace(/\{\{\s*site\.github\.repository_url[^}]*\}\}/g, siteConfig.github.repository_url);
 
   let html = marked.parse(processed);

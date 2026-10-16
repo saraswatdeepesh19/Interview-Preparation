@@ -508,7 +508,11 @@ function ensureCleanOutput() {
 function writePage(filePath, frontMatter, content) {
   const dir = path.dirname(filePath);
   if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-  const full = renderFrontMatter(frontMatter) + '\n\n' + content.trim() + '\n';
+  // Generated pages carry no Liquid of their own, but answers quote templates such as
+  // `{{ .State.Pid }}` or `${{ github.ref }}`. Jekyll would try to evaluate those, so
+  // keep the body raw (a literal endraw tag inside the body is split so it cannot close it).
+  const body = content.trim().replace(/\{%-?\s*endraw\s*-?%\}/g, '{% endraw %}{{ "{% endraw %}" }}{% raw %}');
+  const full = renderFrontMatter(frontMatter) + '\n\n{% raw %}\n' + body + '\n{% endraw %}\n';
   fs.writeFileSync(filePath, full, 'utf-8');
 }
 
