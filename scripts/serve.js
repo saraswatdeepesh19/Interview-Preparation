@@ -18,9 +18,9 @@ let siteConfig = {
   description: '500+ Java interview questions and answers for Junior, Middle, and Senior developers.',
   lang: 'en',
   baseurl: '',
-  url: 'https://viacheslavchernyshov.github.io/java-interview-questions-and-answers',
+  url: 'https://saraswatdeepesh19.github.io/Interview-Preparation',
   github: {
-    repository_url: 'https://github.com/ViacheslavChernyshov/java-interview-questions-and-answers',
+    repository_url: 'https://github.com/saraswatdeepesh19/Interview-Preparation',
   },
 };
 

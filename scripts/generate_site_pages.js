@@ -6,7 +6,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const REPO_ROOT = path.resolve(__dirname, '..');
 const DOCS_DIR = path.join(REPO_ROOT, 'docs');
-const REPOSITORY_URL = 'https://github.com/ViacheslavChernyshov/java-interview-questions-and-answers';
+const REPOSITORY_URL = 'https://github.com/saraswatdeepesh19/Interview-Preparation';
 
 const SECTION_ICONS = {
   1: '🗄️',
@@ -570,7 +570,7 @@ function generatePages(allSections) {
 }
 
 function generateSitemap(allSections) {
-  const SITE_URL = 'https://viacheslavchernyshov.github.io/java-interview-questions-and-answers';
+  const SITE_URL = 'https://saraswatdeepesh19.github.io/Interview-Preparation';
   const urls = [];
 
   const homeAlternates = [

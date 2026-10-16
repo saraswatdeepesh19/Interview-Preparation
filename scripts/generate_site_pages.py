@@ -11,7 +11,7 @@ from urllib.parse import quote
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 DOCS_DIR = REPO_ROOT / "docs"
-REPOSITORY_URL = "https://github.com/ViacheslavChernyshov/java-interview-questions-and-answers"
+REPOSITORY_URL = "https://github.com/saraswatdeepesh19/Interview-Preparation"
 
 SECTION_ICONS = {
     1: "🗄️",
@@ -582,7 +582,7 @@ def generate_pages(all_sections: dict[str, dict[int, Section]]) -> None:
 
 
 def generate_sitemap(all_sections: dict[str, dict[int, Section]]) -> None:
-    site_url_base = "https://viacheslavchernyshov.github.io/java-interview-questions-and-answers"
+    site_url_base = "https://saraswatdeepesh19.github.io/Interview-Preparation"
     urls = []
 
     home_alternates = [

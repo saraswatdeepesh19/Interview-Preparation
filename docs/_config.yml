@@ -1,9 +1,9 @@
 title: Java Interview Questions and Answers
 description: 500+ Java interview questions and answers for Junior, Middle, and Senior developers. Covers Spring Boot, Hibernate, SQL, Kafka, Docker, Kubernetes, and more.
 lang: en
-url: https://viacheslavchernyshov.github.io
-baseurl: /java-interview-questions-and-answers
-repository: ViacheslavChernyshov/java-interview-questions-and-answers
+url: https://saraswatdeepesh19.github.io
+baseurl: /Interview-Preparation
+repository: saraswatdeepesh19/Interview-Preparation
 markdown: kramdown
 permalink: pretty
 plugins:

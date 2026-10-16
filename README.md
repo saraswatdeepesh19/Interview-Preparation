@@ -7,8 +7,8 @@ This repository is built as a **practical Java backend interview preparation sys
 
 ## Start Here
 
-- English landing page: [GitHub Pages / English](https://viacheslavchernyshov.github.io/java-interview-questions-and-answers/)
-- English answer library: [Read answers on the site](https://viacheslavchernyshov.github.io/java-interview-questions-and-answers/questions/)
+- English landing page: [GitHub Pages / English](https://saraswatdeepesh19.github.io/Interview-Preparation/)
+- English answer library: [Read answers on the site](https://saraswatdeepesh19.github.io/Interview-Preparation/questions/)
 - English repository version: [eng/README.md](eng/README.md)
 
 ## Languages
