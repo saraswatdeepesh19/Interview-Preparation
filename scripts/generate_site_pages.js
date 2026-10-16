@@ -585,8 +585,8 @@ function generatePages(allSections) {
     for (const sec of orderedSections) {
       const secSidebar = buildSidebarData(orderedSections, sec.number);
       const secSourceUrl = sec.navigator_path
-        ? `${REPOSITORY_URL}/blob/master/${path.relative(REPO_ROOT, sec.navigator_path).replace(/\\/g, '/')}`
-        : `${REPOSITORY_URL}/tree/master/${path.relative(REPO_ROOT, sec.source_dir).replace(/\\/g, '/')}`;
+        ? `${REPOSITORY_URL}/blob/main/${path.relative(REPO_ROOT, sec.navigator_path).replace(/\\/g, '/')}`
+        : `${REPOSITORY_URL}/tree/main/${path.relative(REPO_ROOT, sec.source_dir).replace(/\\/g, '/')}`;
 
       writePage(
         path.join(outputDir, sec.slug, 'index.md'),
@@ -631,7 +631,7 @@ function generatePages(allSections) {
             section_url: sec.url,
             section_number: sec.number,
             question_number: q.position,
-            source_url: `${REPOSITORY_URL}/blob/master/${q.source_relative_path}`,
+            source_url: `${REPOSITORY_URL}/blob/main/${q.source_relative_path}`,
             prev_title: q.prev_title,
             prev_url: q.prev_url,
             next_title: q.next_title,

@@ -7,7 +7,7 @@ name: Deploy site to GitHub Pages
 
 on:
   push:
-    branches: [Test1.0] # the repository's default branch
+    branches: [main] # the repository's default branch
   workflow_dispatch:
 
 permissions:

@@ -1,6 +1,6 @@
 # Java Interview Questions and Answers 
 
-[![Deploy site to GitHub Pages](https://github.com/saraswatdeepesh19/Interview-Preparation/actions/workflows/pages.yml/badge.svg?branch=Test1.0)](https://github.com/saraswatdeepesh19/Interview-Preparation/actions/workflows/pages.yml)
+[![Deploy site to GitHub Pages](https://github.com/saraswatdeepesh19/Interview-Preparation/actions/workflows/pages.yml/badge.svg?branch=main)](https://github.com/saraswatdeepesh19/Interview-Preparation/actions/workflows/pages.yml)
 
 **🌐 Live site: [saraswatdeepesh19.github.io/Interview-Preparation](https://saraswatdeepesh19.github.io/Interview-Preparation/)** · searchable, with every answer split into Junior, Middle, and Senior levels.
 
@@ -26,7 +26,7 @@ npm test        # check that every section is numbered without gaps
 npm run build   # generate pages only
 ```
 
-Pushing to `Test1.0` runs [the Pages workflow](.github/workflows/pages.yml), which generates the pages, builds them with Jekyll, and publishes the [live site](https://saraswatdeepesh19.github.io/Interview-Preparation/). You can also start it by hand from the Actions tab.
+Pushing to `main` (for example by merging a pull request) runs [the Pages workflow](.github/workflows/pages.yml), which generates the pages, builds them with Jekyll, and publishes the [live site](https://saraswatdeepesh19.github.io/Interview-Preparation/). You can also start it by hand from the Actions tab.
 
 ## Languages
 
