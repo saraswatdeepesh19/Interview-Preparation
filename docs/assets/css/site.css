@@ -1974,3 +1974,38 @@ p {
   background: var(--inline-code-bg);
   color: var(--inline-code-text);
 }
+
+/* Mermaid diagrams rendered from ```mermaid blocks */
+.mermaid-diagram {
+  margin: 1.6em 0;
+  padding: 20px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-subtle);
+  overflow-x: auto;
+  text-align: center;
+}
+
+.mermaid-diagram svg {
+  max-width: 100%;
+  height: auto;
+}
+
+.mermaid-diagram.is-loading {
+  min-height: 140px;
+  background:
+    linear-gradient(90deg, transparent, var(--border-subtle), transparent) 0 0 / 40% 100% no-repeat,
+    var(--bg-subtle);
+  animation: mermaid-shimmer 1.2s ease-in-out infinite;
+}
+
+@keyframes mermaid-shimmer {
+  from { background-position: -40% 0, 0 0; }
+  to { background-position: 140% 0, 0 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mermaid-diagram.is-loading {
+    animation: none;
+  }
+}

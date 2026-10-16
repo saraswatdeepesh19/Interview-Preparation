@@ -16,7 +16,7 @@ JavaInterview_v2/
 ├── .gitignore
 ├── .github/
 │   └── workflows/
-│       └── pages.yml            # CI/CD: push master → generate pages → Jekyll → deploy
+│       └── pages.yml            # CI/CD: push main → generate pages → Jekyll → deploy
 │
 ├── eng/                         # 🇬🇧 Английский контент (528 .md файлов)
 │   ├── README.md
@@ -321,7 +321,7 @@ image: /assets/social-preview/github-social-preview.png
 
 ```mermaid
 graph LR
-    A["git push master"] --> B["GitHub Actions"]
+    A["git push main"] --> B["GitHub Actions"]
     B --> C["Node: npm run build (generate_site_pages.js)"]
     C --> D["Генерирует docs/questions/ из ru/ eng/ ua/"]
     D --> E["Jekyll build"]
