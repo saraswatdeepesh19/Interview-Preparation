@@ -282,6 +282,7 @@
 
         if (levelKey && !seenLevels.has(levelKey)) {
           seenLevels.add(levelKey);
+          h.classList.add('level-heading', 'level-heading-' + levelKey);
           if (!h.id) {
             h.id = 'section-' + levelKey;
           }
@@ -305,6 +306,7 @@
 
     // --- Instant Search Engine (Ctrl + K) ---
     initSearch();
+    initTopicExplorer();
   });
 
   // --- Search Implementation ---
@@ -479,6 +481,48 @@
         resultsContainer.innerHTML = html;
       }, 120);
     });
+  }
+
+  // Landing page: filter topic cards by track chip and by free text.
+  function initTopicExplorer() {
+    const root = document.getElementById('topic-explorer');
+    if (!root) return;
+    const chips = [...root.querySelectorAll('.track-chip')];
+    const groups = [...root.querySelectorAll('.track-group')];
+    const input = document.getElementById('topic-filter-input');
+    const empty = document.getElementById('topic-empty');
+    let activeTrack = 'all';
+
+    function apply() {
+      const tokens = (input ? input.value : '').toLowerCase().split(/\s+/).filter(Boolean);
+      let shown = 0;
+      groups.forEach(group => {
+        const trackMatch = activeTrack === 'all' || group.dataset.track === activeTrack;
+        let groupShown = 0;
+        group.querySelectorAll('.topic-card').forEach(card => {
+          const text = card.dataset.search || '';
+          const match = trackMatch && tokens.every(t => text.includes(t));
+          card.hidden = !match;
+          if (match) groupShown++;
+        });
+        group.hidden = groupShown === 0;
+        shown += groupShown;
+      });
+      if (empty) empty.hidden = shown !== 0;
+    }
+
+    chips.forEach(chip => {
+      chip.addEventListener('click', () => {
+        activeTrack = chip.dataset.track;
+        chips.forEach(c => {
+          const on = c === chip;
+          c.classList.toggle('is-active', on);
+          c.setAttribute('aria-pressed', String(on));
+        });
+        apply();
+      });
+    });
+    if (input) input.addEventListener('input', apply);
   }
 
   function escapeHtml(str) {

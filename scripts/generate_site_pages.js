@@ -247,31 +247,40 @@ function siteUrl(langKey, ...parts) {
   return cleanParts.length ? '/' + cleanParts.join('/') + '/' : '/';
 }
 
-// Navigators are hand-written, so their link targets often differ from the real
-// file names in case or wording. Match on the exact name (case-insensitive) first,
-// then fall back to the question number prefix, which is unique within a section.
-// Links into a sibling section ("../3. Name/...") resolve against that section.
-function rewriteNavigatorLinks(navigatorBody, section, sectionsByNumber) {
-  const findQuestion = (sec, fileName) => {
-    const numberMatch = fileName.match(/^(\d+)\./);
-    return sec.questions.find(q => q.file_name.toLowerCase() === fileName.toLowerCase())
-      || (numberMatch && sec.questions.find(q => q.number === parseInt(numberMatch[1], 10)));
-  };
-  return navigatorBody.replace(/\]\(((?:[^()\s]|\([^()\s]*\))+\.md)\)/g, (match, target) => {
+// Rewrites relative links between source Markdown files into site URLs.
+// Hand-written link targets can differ from the real file names in case or wording,
+// so match on the exact name (case-insensitive) first, then on the question number
+// prefix, which is unique within a section. Links into a sibling section
+// ("../3. Name/...") resolve against that section. `toRoot` is the relative path
+// from the page being rendered to the questions root ('../' for a section page,
+// '../../' for a question page). Links to articles that do not exist yet are
+// rendered as plain text rather than as dead links.
+const MD_LINK_RE = /\[((?:[^[\]]|\[[^[\]]*\])*)\]\(((?:[^()\s]|\([^()\s]*\))+\.md)(#[^)\s]*)?\)/g;
+
+function findQuestion(section, fileName) {
+  const numberMatch = fileName.match(/^(\d+)\./);
+  return section.questions.find(q => q.file_name.toLowerCase() === fileName.toLowerCase())
+    || (numberMatch && section.questions.find(q => q.number === parseInt(numberMatch[1], 10)));
+}
+
+function rewriteMarkdownLinks(markdown, section, sectionsByNumber, toRoot) {
+  return markdown.replace(MD_LINK_RE, (match, label, target) => {
+    if (/^[a-z]+:/i.test(target)) return match;
     let decoded = target;
     try { decoded = decodeURIComponent(target); } catch { /* keep raw target */ }
 
+    let targetSection = section;
+    let fileName = decoded.replace(/^\.\//, '');
     const sibling = decoded.match(/^\.\.\/(\d+)\.[^/]*\/(.+)$/);
     if (sibling) {
-      const other = sectionsByNumber[parseInt(sibling[1], 10)];
-      if (!other) return match;
-      if (sibling[2].startsWith('00.')) return `](../${other.slug}/)`;
-      const question = findQuestion(other, sibling[2]);
-      return question ? `](../${other.slug}/${question.slug}/)` : match;
+      targetSection = sectionsByNumber[parseInt(sibling[1], 10)];
+      fileName = sibling[2];
     }
+    if (!targetSection) return label;
+    if (fileName.startsWith('00.')) return `[${label}](${toRoot}${targetSection.slug}/)`;
 
-    const question = findQuestion(section, decoded);
-    return question ? `](./${question.slug}/)` : match;
+    const question = findQuestion(targetSection, fileName);
+    return question ? `[${label}](${toRoot}${targetSection.slug}/${question.slug}/)` : label;
   });
 }
 
@@ -469,7 +478,7 @@ function buildLibraryContent(langKey, sections) {
 
 function buildSectionContent(langKey, section, sectionsByNumber) {
   const text = LOCALIZED_TEXT[langKey];
-  const rewrittenNav = rewriteNavigatorLinks(section.navigator_body, section, sectionsByNumber);
+  const rewrittenNav = rewriteMarkdownLinks(section.navigator_body, section, sectionsByNumber, '../');
   const lines = [
     `## ${text.section_questions_heading}`,
     '',
@@ -483,8 +492,8 @@ function buildSectionContent(langKey, section, sectionsByNumber) {
   return lines.join('\n');
 }
 
-function buildQuestionContent(question) {
-  return question.body.trim() + '\n';
+function buildQuestionContent(question, section, sectionsByNumber) {
+  return rewriteMarkdownLinks(question.body.trim(), section, sectionsByNumber, '../../') + '\n';
 }
 
 function ensureCleanOutput() {
@@ -626,7 +635,7 @@ function generatePages(allSections) {
             alternates: buildAlternates(allSections, sec.number, q.position),
             sidebar_sections: qSidebar,
           },
-          buildQuestionContent(q)
+          buildQuestionContent(q, sec, sections)
         );
       }
     }
@@ -641,23 +650,82 @@ function escapeHtml(text) {
   return String(text).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 
+// Landing-page tracks. Each section belongs to exactly one track; sections missing
+// from every track land in "More topics" so a new eng/ folder is never hidden.
+const TRACKS = [
+  { id: 'core', name: 'Core Java', color: '#f59e0b', blurb: 'The language itself: collections, strings, streams, and modern Java features.', sections: [4, 10, 12, 7, 8, 13, 20, 21] },
+  { id: 'jvm', name: 'JVM & Concurrency', color: '#f43f5e', blurb: 'Memory, garbage collection, threads, async composition, and performance.', sections: [3, 9, 19, 24, 31] },
+  { id: 'spring', name: 'Spring & Testing', color: '#22c55e', blurb: 'Spring Boot, persistence, security, cloud patterns, and how to test it all.', sections: [5, 16, 23, 25, 22] },
+  { id: 'data', name: 'Data & Storage', color: '#0ea5e9', blurb: 'SQL, transactions, caching, NoSQL stores, and safe schema changes.', sections: [1, 11, 26, 27, 36] },
+  { id: 'web', name: 'APIs, Messaging & Web', color: '#8b5cf6', blurb: 'HTTP and API design, event streaming, message brokers, and the frontend.', sections: [6, 34, 15, 28, 35] },
+  { id: 'delivery', name: 'Cloud & Delivery', color: '#06b6d4', blurb: 'Containers, Kubernetes, build pipelines, and AWS.', sections: [14, 32, 33] },
+  { id: 'architecture', name: 'Architecture & Design', color: '#6366f1', blurb: 'Patterns, SOLID, microservices, system design, and technical leadership.', sections: [2, 18, 17, 30, 37] },
+  { id: 'skills', name: 'Interview Skills', color: '#ec4899', blurb: 'Coding rounds and the behavioral conversation.', sections: [29, 38] },
+];
+
 function renderTopicCard(section) {
   const card = SECTION_CARDS[section.number] || {};
   const title = card.title || section.label;
   const desc = card.desc || section.questions.slice(0, 4).map(q => q.title).join(', ') + '.';
+  const search = `${section.number} ${title} ${section.label} ${desc.replace(/`/g, "")}`.toLowerCase();
   return [
-    `  <a class="topic-card" href="{{ '${section.url}' | relative_url }}">`,
+    `  <a class="topic-card" href="{{ '${section.url}' | relative_url }}" data-search="${escapeHtml(search)}">`,
     '    <div class="topic-card-top">',
-    `      <span class="topic-icon">${section.icon}</span>`,
-    `      <span class="topic-count">${section.questions.length} Questions</span>`,
+    `      <span class="topic-icon" aria-hidden="true">${section.icon}</span>`,
+    `      <span class="topic-count">${section.questions.length} questions</span>`,
     '    </div>',
-    '    <div>',
-    `      <h3 class="topic-title">${section.number}. ${escapeHtml(title)}</h3>`,
-    `      <p class="topic-desc">${escapeHtml(desc)}</p>`,
-    '    </div>',
-    '    <div class="topic-footer">Start learning →</div>',
+    `    <h3 class="topic-title"><span class="topic-num">${String(section.number).padStart(2, '0')}</span>${escapeHtml(title)}</h3>`,
+    `    <p class="topic-desc">${escapeHtml(desc).replace(/`([^`]+)`/g, '<code>$1</code>')}</p>`,
+    '    <span class="topic-footer">Start learning <span class="topic-arrow" aria-hidden="true">→</span></span>',
     '  </a>',
   ].join('\n');
+}
+
+// Builds the filter bar plus one card group per track. No blank lines inside the
+// block, so both kramdown (Jekyll) and marked (dev server) keep it as raw HTML.
+function renderTopicExplorer(sections) {
+  const byNumber = Object.fromEntries(sections.map(s => [s.number, s]));
+  const assigned = new Set(TRACKS.flatMap(t => t.sections));
+  const tracks = TRACKS.map(t => ({ ...t, items: t.sections.map(n => byNumber[n]).filter(Boolean) }));
+  const leftovers = sections.filter(s => !assigned.has(s.number));
+  if (leftovers.length) tracks.push({ id: 'more', name: 'More topics', color: '#64748b', blurb: 'Recently added sections.', items: leftovers });
+  const visible = tracks.filter(t => t.items.length);
+  const total = sections.length;
+
+  const chip = (id, label, count, color) =>
+    `    <button type="button" class="track-chip${id === 'all' ? ' is-active' : ''}" data-track="${id}" aria-pressed="${id === 'all'}"${color ? ` style="--track: ${color}"` : ''}>` +
+    `${color ? '<span class="track-dot" aria-hidden="true"></span>' : ''}${escapeHtml(label)}<span class="track-chip-count">${count}</span></button>`;
+
+  const lines = [
+    '<div class="topic-explorer" id="topic-explorer">',
+    '<div class="explorer-bar">',
+    '  <div class="track-chips" role="toolbar" aria-label="Filter topics by track">',
+    chip('all', 'All topics', total),
+    ...visible.map(t => chip(t.id, t.name, t.items.length, t.color)),
+    '  </div>',
+    '  <label class="topic-filter">',
+    '    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>',
+    `    <input type="search" id="topic-filter-input" placeholder="Filter ${total} topics…" autocomplete="off" aria-label="Filter topics">`,
+    '  </label>',
+    '</div>',
+  ];
+  for (const t of visible) {
+    const questions = t.items.reduce((acc, s) => acc + s.questions.length, 0);
+    lines.push(
+      `<section class="track-group" data-track="${t.id}" style="--track: ${t.color}">`,
+      '  <header class="track-header">',
+      `    <h3 class="track-title"><span class="track-dot" aria-hidden="true"></span>${escapeHtml(t.name)}</h3>`,
+      `    <p class="track-blurb">${escapeHtml(t.blurb)}</p>`,
+      `    <span class="track-meta">${t.items.length} topics · ${questions} questions</span>`,
+      '  </header>',
+      '  <div class="topics-grid">',
+      ...t.items.map(renderTopicCard),
+      '  </div>',
+      '</section>',
+    );
+  }
+  lines.push('<p class="topic-empty" id="topic-empty" hidden>No topics match your filter. Try the search above to look inside every answer.</p>', '</div>');
+  return lines.join('\n');
 }
 
 // Rewrites every `<!-- gen:KEY -->...<!-- /gen:KEY -->` block in the landing page
@@ -669,7 +737,8 @@ function updateLandingPage(allSections) {
   const blocks = {
     'topic-count': String(sections.length),
     'question-count': String(totalQuestions),
-    'topic-cards': '\n' + sections.map(renderTopicCard).join('\n\n') + '\n',
+    'question-count-rounded': `${Math.floor(totalQuestions / 100) * 100}+`,
+    'topic-cards': '\n' + renderTopicExplorer(sections) + '\n',
   };
 
   let html = fs.readFileSync(LANDING_PAGE, 'utf-8');
