@@ -193,8 +193,21 @@
       });
     });
 
+    // --- Mermaid diagrams (must run before code blocks get copy buttons) ---
+    initMermaid();
+
     // --- Code Copy Buttons ---
-    document.querySelectorAll('.markdown-body pre').forEach(pre => {
+    document.querySelectorAll('.markdown-body pre').forEach(enhanceCodeBlock);
+
+    // --- On-Page Level Navigation / Quick Anchors (Questions only) ---
+    initLevelAnchors();
+
+    // --- Instant Search ---
+    initSearch();
+    initTopicExplorer();
+  });
+
+  function enhanceCodeBlock(pre) {
       const code = pre.querySelector('code');
       if (!code) return;
 
@@ -244,9 +257,80 @@
           console.error('Failed to copy code: ', err);
         }
       });
-    });
+  }
 
-    // --- On-Page Level Navigation / Quick Anchors (Questions only) ---
+  // --- Mermaid diagrams ---
+  // Locally (marked) a block is <pre><code class="language-mermaid">; on GitHub Pages
+  // (kramdown + Rouge) it is <div class="language-mermaid highlighter-rouge">…<pre><code>.
+  // Each block becomes a <figure>; if Mermaid cannot load or a diagram fails to parse,
+  // the original code block is put back so nothing is lost.
+  const MERMAID_URL = 'https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.esm.min.mjs';
+  let mermaidModule = null;
+  let mermaidSeq = 0;
+
+  function initMermaid() {
+    const codes = document.querySelectorAll('.markdown-body code.language-mermaid, .markdown-body .language-mermaid pre code');
+    const figures = [];
+    new Set(codes).forEach(code => {
+      const block = code.closest('.language-mermaid.highlighter-rouge') || code.closest('pre');
+      if (!block || block.closest('.mermaid-diagram')) return;
+      const figure = document.createElement('figure');
+      figure.className = 'mermaid-diagram is-loading';
+      figure.setAttribute('role', 'img');
+      figure.setAttribute('aria-label', 'Diagram');
+      figure._source = code.textContent.trim();
+      figure._fallback = block;
+      block.replaceWith(figure);
+      figures.push(figure);
+    });
+    if (!figures.length) return;
+
+    renderMermaid(figures);
+    // Re-render with matching colors whenever the theme changes.
+    new MutationObserver(() => renderMermaid(figures.filter(f => f.isConnected && !f._failed)))
+      .observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+  }
+
+  async function renderMermaid(figures) {
+    try {
+      if (!mermaidModule) mermaidModule = (await import(MERMAID_URL)).default;
+    } catch (err) {
+      console.warn('Mermaid could not be loaded; showing diagram source instead.', err);
+      figures.forEach(restoreMermaidSource);
+      return;
+    }
+    const dark = (document.documentElement.getAttribute('data-theme') || 'dark') === 'dark';
+    mermaidModule.initialize({
+      startOnLoad: false,
+      securityLevel: 'strict',
+      theme: 'base',
+      fontFamily: 'Inter, system-ui, sans-serif',
+      themeVariables: dark
+        ? { darkMode: true, background: '#0f172a', primaryColor: '#1e293b', primaryBorderColor: '#38bdf8', primaryTextColor: '#f8fafc', secondaryColor: '#172036', tertiaryColor: '#111827', lineColor: '#64748b', textColor: '#e2e8f0', noteBkgColor: '#1e293b', noteTextColor: '#f8fafc', edgeLabelBackground: '#1e293b' }
+        : { darkMode: false, background: '#f1f5f9', primaryColor: '#e0f2fe', primaryBorderColor: '#0284c7', primaryTextColor: '#0f172a', secondaryColor: '#f1f5f9', tertiaryColor: '#ffffff', lineColor: '#94a3b8', textColor: '#1e293b', noteBkgColor: '#fef9c3', noteTextColor: '#0f172a', edgeLabelBackground: '#ffffff' },
+    });
+    for (const figure of figures) {
+      try {
+        const { svg } = await mermaidModule.render('mermaid-' + (++mermaidSeq), figure._source);
+        figure.innerHTML = svg;
+        figure.classList.remove('is-loading');
+      } catch (err) {
+        console.warn('Mermaid diagram failed to render; showing its source.', err);
+        restoreMermaidSource(figure);
+      }
+    }
+  }
+
+  function restoreMermaidSource(figure) {
+    figure._failed = true;
+    const block = figure._fallback;
+    figure.replaceWith(block);
+    block.querySelectorAll('pre').forEach(enhanceCodeBlock);
+    if (block.matches('pre')) enhanceCodeBlock(block);
+  }
+
+  // --- On-Page Level Navigation / Quick Anchors (Questions only) ---
+  function initLevelAnchors() {
     const anchorsContainer = document.getElementById('level-anchors');
     const contentBody = document.querySelector('.content-article .markdown-body');
     const currentLang = document.documentElement.lang || 'en';
@@ -303,11 +387,7 @@
         anchorsContainer.appendChild(list);
       }
     }
-
-    // --- Instant Search Engine (Ctrl + K) ---
-    initSearch();
-    initTopicExplorer();
-  });
+  }
 
   // --- Search Implementation ---
   let searchIndex = null;
